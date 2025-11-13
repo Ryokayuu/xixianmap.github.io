@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=oYEEXrPC3wfV4kOlbt295tngJZiugNx7"></script>
+    <script type="text/javascript" src="https://api.map.baidu.com/library/Heatmap/2.0/src/Heatmap_min.js"></script>
+    <title>扩大范围的热力图（中心：107.642168,35.738383）</title>
+    <style type="text/css">
+        html{height:100%}
+        body{height:100%;margin:0px;padding:0px;font-family:"微软雅黑";}
+        #container{height:800px;width:100%;}
+        #r-result{width:100%;margin-top:10px;text-align:center;}
+        input{padding:5px 15px;margin:0 10px;cursor:pointer;}
+    </style>	
+</head>
+<body>
+    <div id="container"></div>
+    <div id="r-result">
+        <input type="button" onclick="openHeatmap();" value="显示热力图"/>
+        <input type="button" onclick="closeHeatmap();" value="关闭热力图"/>
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    window.onload = function() {
+        if (typeof BMap === 'undefined') {
+            alert('百度地图API加载失败！请检查网络或AK有效性');
+            return;
+        }
+
+        // 1. 调整地图级别（从16级改为14级，扩大地图显示范围）
+        var map = new BMap.Map("container");
+        var targetCenter = new BMap.Point(107.642168, 35.738383);
+        map.centerAndZoom(targetCenter, 14); // 级别降低，地图范围扩大
+        map.enableScrollWheelZoom();
+
+        // 2. 扩大热力数据点的分布范围（从±0.005改为±0.02，覆盖更大区域）
+        var points = [];
+        var centerLng = 107.642168;
+        var centerLat = 35.738383;
+        var range = 0.02; // 扩大经纬度分布范围
+        var pointCount = 120; // 增加数据点数量，使大范围更饱满
+
+        for (var i = 0; i < pointCount; i++) {
+            var randomLng = (centerLng - range + Math.random() * 2 * range).toFixed(6);
+            var randomLat = (centerLat - range + Math.random() * 2 * range).toFixed(6);
+            var randomCount = Math.floor(Math.random() * 90) + 10;
+            points.push({
+                lng: parseFloat(randomLng),
+                lat: parseFloat(randomLat),
+                count: randomCount
+            });
+        }
+
+        // 3. 调整热力图参数（半径增大，让大范围的热力更连贯）
+        if (typeof BMapLib === 'undefined') {
+            alert('热力图扩展库加载失败！');
+            return;
+        }
+        var heatmapOverlay = new BMapLib.HeatmapOverlay({
+            "radius": 35, // 增大热力点半径
+            "opacity": 0.5,
+            "gradient": {
+                0.2: 'rgb(255, 255, 102)',
+                0.5: 'rgb(255, 170, 0)',
+                0.8: 'rgb(255, 0, 0)'
+            },
+            "visualMap": false
+        });
+        map.addOverlay(heatmapOverlay);
+        heatmapOverlay.setDataSet({ data: points, max: 100 });
+
+        window.heatmapOverlay = heatmapOverlay;
+    };
+
+    function openHeatmap() {
+        if (window.heatmapOverlay) {
+            window.heatmapOverlay.show();
+        } else {
+            alert('热力图未初始化！');
+        }
+    }
+
+    function closeHeatmap() {
+        if (window.heatmapOverlay) {
+            window.heatmapOverlay.hide();
+        } else {
+            alert('热力图未初始化！');
+        }
+    }
+</script>
